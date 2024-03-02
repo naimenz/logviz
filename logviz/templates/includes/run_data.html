@@ -1,0 +1,19 @@
+<div id="runData">
+    <div class="text-2xl"><strong>Run:</strong> <em>{{run_name}}</em></div>
+    <div class="flex justify-between space-x-4 h-auto max-h-96">
+        <div
+            class="flex-initial w-1/2 bg-white rounded-md border-black border-0 p-4 bg-blue-50"
+        >
+            <div class="text-xl mb-4 font-semibold">Spec</div>
+            <div id="specSection">Loading...</div>
+            <script src="{{ url_for('static', filename='js/spec.js') }}"></script>
+        </div>
+        <div
+            class="flex-grow overflow-auto w-1/2 bg-white rounded-md border-black border-0 p-4 bg-blue-50"
+        >
+            <div class="text-xl mb-4 font-semibold">Final Report</div>
+            <div id="finalReportSection">Loading...</div>
+            <script src="{{ url_for('static', filename='js/finalReport.js') }}"></script>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "logviz"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+Flask = "^2.3.2"
+jsonlines = "^3.1.0"
+graphene = "^3.3"
+graphql-server = {version = "^3.0.0b7", extras = ["flask"]}
+flask-cors = "^4.0.0"
+
+
+[tool.poetry.group.dev.dependencies]
+pre-commit = "^3.6.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+logviz = "logviz.run:cli"

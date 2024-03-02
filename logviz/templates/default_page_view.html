@@ -1,0 +1,35 @@
+{% extends "base_view.html" %}
+{% block nav_bar %}
+{% include "includes/nav_bar.html" %}
+{% endblock %}
+
+{% block run_data %}
+{% include "includes/run_data.html" %}
+{% endblock %}
+
+{% block sample_data %}
+<div id="sample_data">
+    <div class="text-2xl mb-4">Sample Data</div>
+    <!-- now we add buttons to go back and forward between sample pages -->
+    <div class="mb-4 flex justify-start space-x-4">
+        <button id="prev-button" class="px-4 py-2 bg-blue-500 text-white rounded" onclick="window.location.href='{{ url_for('display_run', run_id=run_id, page_id=page_id|int-1) }}'">Previous</button>
+        <div id="page-number" class="text-l py-2">Page {{ page_id }}</div>
+        <button id="next-button" class="px-4 py-2 bg-blue-500 text-white rounded" onclick="window.location.href='{{ url_for('display_run', run_id=run_id, page_id=page_id|int+1) }}'">Next</buton>
+        <!-- <button id="prev-button" class="disabled:bg-blue-500" onclick="window.location.href='{{ url_for('display_run', run_id=run_id, page_id=page_id|int-1) }}'">Previous</button> -->
+        <!-- <button id="next-button" class="disabled:bg-blue-500" onclick="window.location.href='{{ url_for('display_run', run_id=run_id, page_id=page_id|int+1) }}'">Next</buton> -->
+    </div>
+
+    <div class="w-1/2 overflow-auto max-h-96 bg-white rounded-md border-black border-0 p-4 bg-blue-50">
+        <div class="text-xl mb-4 font-semibold">Metrics</div>
+        <div id="metrics-section">Loading...</div>
+    </div>
+
+    <div class="text-xl mb-4">Events</div>
+    <div
+        id="sample-section"
+        class="bg-blue-50 p-4 rounded-md flex flex-col"
+    ></div>
+</div>
+<script src="{{ url_for('static', filename='js/defaultSampleSection.js') }}"></script>
+<!-- <script src="{{ url_for('static', filename='js/defaultView.js') }}"></script> -->
+{% endblock %}

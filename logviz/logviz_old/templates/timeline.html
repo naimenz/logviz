@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Conversation History</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.15/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body class="bg-gray-50 p-4">
+    <div class="max-w-screen-lg mx-auto">
+      <h1 class="text-3xl font-semibold mb-4">Conversation History</h1>
+      <table class="min-w-full border rounded-lg overflow-hidden">
+        <thead class="bg-gray-200">
+          <tr>
+            <th class="px-4 py-2">Role</th>
+            <th class="px-4 py-2">Content</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for message in messages %} {% if loop.index % 2 == 1 %}
+          <tr class="bg-gray-100">
+            {% else %}
+          </tr>
+
+          <tr class="bg-white">
+            {% endif %}
+            <td class="px-4 py-2">{{ message.role }}</td>
+            <td class="px-4 py-2">
+            <div class="whitespace-pre-wrap">{{ message.content }}</div>
+              {% if message.function_call %}
+              <table class="border rounded-lg overflow-hidden mt-4">
+                <thead class="bg-gray-200">
+                  <tr>
+                    <th colspan="2" class="px-4 py-2">
+                      {{ message.function_call.name }}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for key, value in message.function_call.arguments.items()
+                  %}
+                  <tr class="bg-white">
+                    <td class="px-4 py-2">{{ key }}</td>
+                    <td class="px-4 py-2 overflow-x-auto">
+                      <pre class="whitespace-pre-wrap">{{ value }}</pre>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+              {% else %}
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </body>
+</html>

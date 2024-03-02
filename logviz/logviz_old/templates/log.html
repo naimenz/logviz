@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<script src="https://cdn.tailwindcss.com"></script>
+<title>Logviz</title>
+<style>
+    .highlight {
+        background-color: yellow;
+        padding: 2px 0;
+    }
+</style>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="mb-4 flex space-x-4">
+        <div class="mb-4">
+            <form action="{{ url_for('search') }}" method="get">
+                <input class="p-2 border rounded" name="query" placeholder="Search for log file..." type="text"/>
+                <button class="px-4 py-2 bg-blue-500 text-white rounded" type="submit">Search</button>
+            </form>
+        </div>
+        <div class="mb-4">
+            <form action="{{ url_for('metric_search') }}" method="get">
+                <input type="hidden" name="referrer" class="referrerInput">
+                <input class="p-2 border rounded" name="search_metrics" placeholder="Search metrics in log..." type="text"/>
+                <button class="px-4 py-2 bg-blue-500 text-white rounded" type="submit">Search</button>
+            </form>
+        </div>
+        <div class="mb-4">
+            <form action="{{ url_for('keyword_search') }}" method="get">
+                <input type="hidden" name="referrer" class="referrerInput">
+                <input class="p-2 border rounded" name="keywords" placeholder="Search keywords...", type="text"/>
+                <button class="px-4 py-2 bg-blue-500 text-white rounded" type="submit">Search</button>
+            </form>
+        </div>
+        <div class="relative inline-block text-left" id="dropdown">
+            <div>
+                <button type="button" class="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none" id="menu-button">
+                    Views
+                </button>
+            </div>
+            <div class="hidden origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none" role="menu" aria-orientation="vertical" aria-labelledby="menu-button" tabindex="-1" id="menu-items">
+                <div class="py-1" role="none">
+                    <a href="{{ url_for('view_sampling', path_to_jsonl=path_to_jsonl[1:], page=page+1, search_metrics=search_metrics, keywords=keywords) }}" class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100" role="menuitem" tabindex="-1">Default view</a>
+                    <a href="{{ url_for('view_task', path_to_jsonl=path_to_jsonl[1:], page=page+1, search_metrics=search_metrics, keywords=keywords) }}" class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100" role="menuitem" tabindex="-1">Task view</a>
+                    <a href="{{ url_for('view_task_v1', path_to_jsonl=path_to_jsonl[1:], page=page+1, search_metrics=search_metrics, keywords=keywords) }}" class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100" role="menuitem" tabindex="-1">Task.v1 view</a>
+                    <a href="{{ url_for('view_timeline', fpath=path_to_jsonl[1:]) }}" class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100" role="menuitem" tabindex="-1">Timeline view</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="mb-4 flex justify-between">
+        {% if page > 0 %}
+        <a class="px-4 py-2 bg-blue-500 text-white rounded" href="{{ url_for('view_sampling', path_to_jsonl=path_to_jsonl[1:], page=page, search_metrics=search_metrics, keywords=keywords) }}">Previous</a>
+        {% else %}
+        <span class="px-4 py-2 bg-gray-300 text-white rounded">Previous</span>
+        {% endif %}
+        {% if page + 1 < total_pages %} <a class="px-4 py-2 bg-blue-500 text-white rounded" href="{{ url_for('view_sampling', path_to_jsonl=path_to_jsonl[1:], page=page+2, search_metrics=search_metrics, keywords=keywords) }}">Next</a>
+            {% else %}
+            <span class="px-4 py-2 bg-gray-300 text-white rounded">Next</span>
+            {% endif %}
+    </div>
+        {% if page_content %}
+
+    {% if page_content.log_spec != None %}
+        <h3 class="text-xl font-bold mb-2" onclick="let content = this.nextElementSibling; content.style.display = content.style.display === 'none' ? 'block' : 'none';" style="cursor: pointer;">
+            Experiment Spec  - Click here to toggle
+        </h3>
+        <div class="bg-white p-4 rounded shadow mb-4" style="display: none;">
+            <code>{{ page_content.log_spec.spec | tojson | safe }}</code>
+        </div>
+    {% endif %}
+
+    {% if page_content.final_report != None %}
+        <h3 class="text-xl font-bold mb-2" onclick="let content = this.nextElementSibling; content.style.display = content.style.display === 'none' ? 'block' : 'none';" style="cursor: pointer;">
+            Final Report - Click here to toggle
+        </h3>
+        <div class="bg-white p-4 rounded shadow mb-4">
+            <code>{{ page_content.final_report.final_report | tojson | safe }}</code>
+        </div>
+    {% endif %}
+
+    <h3 class="text-xl font-bold mb-2">Search Terms</h3>
+    <div class="bg-white p-4 rounded shadow mb-4">
+        <div>Searched metrics: {{ search_metrics }}</div>
+        <div>Searched keywords: {{ keywords }}</div>
+        <div>Found: {{ total_pages }} matches</div>
+    </div>
+
+    <h3 class="text-xl font-bold mb-2">Sample Metrics</h3>
+    <div class="bg-white p-4 rounded shadow mb-4">
+        <div>Sample ID: {{ page_content.metrics.sample_id }}</div>
+        <div>Data: {{ page_content.metrics.data }}</div>
+    </div>
+
+
+    <h3 class="text-xl font-bold mb-2">Sample Completions</h3>
+    {% for sampling in page_content.samples %}
+    <div class="bg-white p-4 rounded shadow mb-4">
+    <div onclick="toggleDropdown(this)" style="cursor: pointer;">
+    <strong>Event ID:</strong> {{ sampling.event_id }} - Click to expand
+        </div>
+    <div style="display: none;">
+    <table class="min-w-full bg-white border rounded">
+        <thead>
+            <tr>
+            <th class="py-2 px-4 border-b">Role</th>
+            <th class="py-2 px-4 border-b">Content</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in sampling.render_prompt() %}
+            <tr class="{% if loop.index0 % 2 == 0 %}bg-gray-100{% else %}bg-white{% endif %}">
+                <td class="py-2 px-4 border-b">{{ item.role }}</td>
+                <td class="py-2 px-4 border-b" style="white-space:pre-wrap;">{{ item.content|replace('\n', '<br/>')|safe }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tbody>
+            <tr class="bg-gray-200">
+                <td class="py-2 px-4 border-b">sampled</td>
+                <td class="py-2 px-4 border-b">{{ sampling.sampled|replace('\n', '<br/>')|safe }}</td>
+        </tbody>
+    </table>
+    </div>
+    </div>
+    {% endfor %}
+
+        {% else %}
+        <div class="text-red-500">No sampling lines found in the provided path.</div>
+        {% endif %}
+
+    <script>
+    // this is for the metrics and keyword searches, to pass the current URL along
+    var elements = document.querySelectorAll('.referrerInput');
+    elements.forEach(function(element){
+        element.value = window.location.href;
+    });
+
+    // var keyword = {{ keywords }}
+
+    // // for (keyword of keywords) {
+    // highlightWord(keyword);
+    // // }
+
+    function toggleDropdown(element) {
+        let content = element.nextElementSibling;
+
+        // Check if the clicked dropdown is currently open or closed
+        let isOpening = content.style.display === 'none';
+
+        // Close all dropdowns
+        let allContentDivs = document.querySelectorAll('div[style="display: block;"], div[style="display: none;"]');
+        allContentDivs.forEach(div => {
+            div.style.display = 'none';
+        });
+
+        // If the clicked dropdown was closed, open it
+        if (isOpening) {
+            content.style.display = 'block';
+        }
+    }
+
+    // function highlightWord(word) {
+    //     const content = document.body.innerHTML;
+    //     const regex = new RegExp(`\\b(${word})\\b`, 'gi');
+    //     const highlightedContent = content.replace(regex, '<span class="highlight">$1</span>');
+    //     document.body.innerHTML = highlightedContent;
+    // }
+
+    // This is for the dropdown menu to choose a task view
+    document.getElementById('menu-button').addEventListener('click', function() {
+        var dropdownItems = document.getElementById('menu-items');
+        dropdownItems.classList.toggle('hidden');
+    });
+
+</script>
+</body>
+</html>

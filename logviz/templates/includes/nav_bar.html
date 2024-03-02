@@ -1,0 +1,38 @@
+<nav
+    id="top-bar"
+    class="mb-8 py-4 container flex flex-row justify gap-x-10 items-center"
+>
+    <div>
+        <a href="/" class="text-blue-500 hover:underline">Runs</a> > <em>{{ run_name }}</em>
+    </div>
+    <button
+        id="viewsButton"
+        data-dropdown-toggle="viewsDropdown"
+        aria-hidden="true"
+        class="border-2 border-black px-4 bg-blue-500 text-white"
+    >
+        Views
+    </button>
+    <div
+        id="viewsDropdown"
+        class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700"
+        aria-labelledby="dropdownDefaultButton"
+    >
+        <ul>
+            <li>
+                <a
+                    href="/run?run_id={{ run_id }}&view=default"
+                    class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+                >
+                    Default view
+                </a>
+            </li>
+            <a
+                href="/run?run_id={{ run_id }}&view=task"
+                class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+            >
+                Task view
+            </a>
+        </ul>
+    </div>
+</nav>

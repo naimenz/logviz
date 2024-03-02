@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Log Viewer</title>
+        <link
+            href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.16/dist/tailwind.min.css"
+            rel="stylesheet"
+        />
+        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+
+    </head>
+
+    <body class="">
+        <div class="container flex-column">
+            <div class="container mx-auto px-8 pb-8 pt-4">
+                <div
+                    id="messageBox"
+                    class="px-4 py-2 mb-2 rounded bg-white text-white w-full"
+                >
+                    Test message
+                </div>
+
+                <div class="flex justify-between">
+                    <div class="text-2xl mb-4">Runs</div>
+                    <button
+                        class="mb-4 border-2 border-black px-4 bg-green-500 text-white"
+                        onclick="document.getElementById('fileInput').click()"
+                    >
+                        Upload
+                    </button>
+                    <input
+                        type="file"
+                        id="fileInput"
+                        class="hidden"
+                        accept=".jsonl,.log"
+                        multiple
+                    />
+                </div>
+
+                <table class="min-w-full bg-white rounded">
+                    <thead>
+                        <tr>
+                            <th class="text-left">Name</th>
+                            <th class="text-left">Edit Name</th>
+                            <th class="text-left">Eval</th>
+                            <th class="text-left">Split</th>
+                            <th class="text-left">Solvers</th>
+                            <th class="text-left">Created At</th>
+                            <th class="text-left">Delete</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="log-table"></tbody>
+                </table>
+            </div>
+            <!-- create a large area with a light blue background and dotted border that goes gren when hovered for drag and drop -->
+            <div
+                id="drag-n-drop"
+                class="m-8 bg-blue-100 border-dashed border-2 border-black p-10 rounded text-center hover:bg-green-100"
+            >
+                <div class="flex flex-col justify-center h-full">
+                    <div class="text-2xl mb-4">Drop files here</div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // Upload jsonl file(s)
+            const fileInput = document.getElementById("fileInput");
+            const dropZone = document.getElementById("drag-n-drop");
+
+            dropZone.addEventListener("dragover", (e) => {
+                e.preventDefault();
+                dropZone.classList.add("drop-zone--over");
+            });
+
+            dropZone.addEventListener("dragleave", () => {
+                dropZone.classList.remove("drop-zone--over");
+            });
+
+            fileInput.addEventListener("change", function (event) {
+                files = event.target.files;
+                fileUploadHandler(files);
+            });
+            dropZone.addEventListener("drop", function (event) {
+                event.preventDefault();
+                files = event.dataTransfer.files;
+                fileUploadHandler(files);
+            });
+
+            function fileUploadHandler(files) {
+                const formData = new FormData();
+
+                for (let i = 0; i < files.length; i++) {
+                    formData.append("files[]", files[i]);
+                }
+
+                fetch("/api/upload", {
+                    method: "POST",
+                    body: formData,
+                })
+                    .then((response) => response.json())
+                    .then((data) => {
+                        console.log(data);
+
+                        if (data.message) {
+                            window.location.reload();
+                        }
+
+                        if (data.error) {
+                            showMessage(data.error, "bg-red-600");
+                        }
+                        createLogTable();
+                    })
+                    .catch((error) => console.error("Error:", error));
+            }
+
+            // Show messages
+            function showMessage(message, color) {
+                const messageBox = document.getElementById("messageBox");
+                messageBox.textContent = message;
+                messageBox.classList.remove("bg-white");
+                messageBox.classList.add(color);
+
+                setTimeout(() => {
+                    messageBox.classList.remove(color);
+                    messageBox.classList.add("bg-white"); // hide message after 6 seconds
+                }, 6000);
+            }
+
+            // Create log table
+            const query = `
+      {
+        metadata_list {
+          run_id
+          completion_fns
+          base_eval
+          split
+          created_at
+          uploaded_at
+          name
+        }
+      }`;
+
+        function createLogTable() {
+            fetch("/graphql", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ query }),
+            })
+                .then((res) => res.json())
+                .then((obj) => {
+                    console.log(obj);
+
+                    const table = document.getElementById("log-table");
+                    table.innerHTML = "";
+
+
+                    if (obj.data.metadata_list.length === 0) {
+                        const row = table.insertRow();
+                        const cell = row.insertCell();
+                        cell.colSpan = 5;
+                        cell.innerHTML = "No logs found! Try uploading some :)";
+                        cell.classList.add(
+                            "text-center",
+                            "text-gray-500",
+                            "py-8"
+                        );
+                        return;
+                    }
+
+                    // sort by date created for a little consistency
+                    const sortedMetadata = obj.data.metadata_list.sort((a, b) => {
+                        return new Date(b.created_at) - new Date(a.created_at);
+                    });
+                    sortedMetadata.forEach((metadata) => {
+                        let row = table.insertRow();
+
+                        row.classList.add(
+                            "hover:bg-gray-100",
+                            "cursor-pointer"
+                        );
+                        row.addEventListener("click", () => {
+                            window.location.href = `/run?run_id=${metadata.run_id}`;
+                        });
+
+                        run_name = metadata.name ? metadata.name : `Run ${metadata.run_id}`;
+                        row.insertCell(0).innerHTML = run_name;
+                        row.insertCell(1).innerHTML = "✎";
+                        row.insertCell(2).innerHTML = metadata.base_eval;
+                        row.insertCell(3).innerHTML = metadata.split;
+                        row.insertCell(4).innerHTML =
+                            metadata.completion_fns.join(", ");
+                        row.insertCell(5).innerHTML = metadata.created_at;
+                        row.insertCell(6).innerHTML = "╳";
+
+                        // we make the pencil clickable to change the run's name
+                        row.cells[1].addEventListener("click", (e) => {
+                            e.stopPropagation();
+                            // call the flask /api/delete endpoint
+                            fetch(`/api/update_name?run_id=${metadata.run_id}&name=${prompt("Enter new name")}`, {
+                                method: "PATCH",
+                            })
+                                .then((res) => res.json())
+                                .then((obj) => {
+                                    console.log(obj);
+                                    if (obj.message) {
+                                        showMessage(obj.message, "bg-green-500");
+                                    }
+                                    if (obj.error) {
+                                        showMessage(obj.error, "bg-red-600");
+                                    }
+                                    createLogTable();
+                                })
+                                .catch((error) => console.error("Error:", error));
+                        });
+
+                        // we make the x clickable to delete the run
+                        row.cells[6].addEventListener("click", (e) => {
+                            e.stopPropagation();
+                            // call the flask /api/delete endpoint
+                            fetch(`/api/delete?run_id=${metadata.run_id}`, {
+                                method: "DELETE",
+                            })
+                                .then((res) => res.json())
+                                .then((obj) => {
+                                    console.log(obj);
+                                    if (obj.message) {
+                                        showMessage(obj.message, "bg-green-500");
+                                    }
+                                    if (obj.error) {
+                                        showMessage(obj.error, "bg-red-600");
+                                    }
+                                    createLogTable();
+                                })
+                                .catch((error) => console.error("Error:", error));
+
+                        });
+                    });
+                })
+                .catch((error) => console.error("Error:", error));
+            }
+            createLogTable();
+        </script>
+    </body>
+</html>

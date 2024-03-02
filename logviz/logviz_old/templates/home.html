@@ -1,0 +1,18 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Log Viewer Home</title>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="bg-white p-4 rounded shadow">
+        <div class="mb-4">Enter the full path to a jsonl log file</div>
+    <div class="mb-4">
+        <form action="/search" method="get">
+            <input type="text" name="query" placeholder="Enter path to log file..." class="p-2 border rounded">
+            <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded">View</button>
+        </form>
+    </div>
+</body>
+</html>

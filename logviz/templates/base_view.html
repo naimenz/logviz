@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title> Run: {{ run_name }} </title>
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.css"
+            rel="stylesheet"
+        />
+        <link
+            href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.16/dist/tailwind.min.css"
+            rel="stylesheet"
+        />
+        <!-- for dropdowns  -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
+
+        <!-- for json parsing of NaN -->
+        <script src="https://unpkg.com/json5@2/dist/index.min.js"></script>
+
+        <!--  defining these here so that they can be used in imported js files -->
+        <script>
+            const run_id = "{{ run_id }}";
+            const page_id = "{{ page_id }}";
+            const run_name = "{{ run_name }}";
+        </script>
+        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    </head>
+
+    <body class="">
+        <div class="container mx-auto px-8 pb-8 pt-4">
+            {% block nav_bar %}{% endblock %}
+            <div class="space-y-4">
+                {% block run_data %}{% endblock %}
+                {% block sample_data %}{% endblock %}
+            </div>
+        </div>
+    </body>
+</html>
