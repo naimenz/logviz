@@ -1,6 +1,7 @@
-# Logviz: Visualize openai/evals logs
-This is a simple webapp for visualizing experiments logs, primarily developed by me (Ian McKenzie) and Dane Sherburn (@danesherbs).
+# Logviz: Visualize [openai/evals](https://github.com/openai/evals) logs
+This is a simple webapp for visualizing logs from [openai/evals](https://github.com/openai/evals), primarily developed by me (Ian McKenzie) and Dane Sherburn (@danesherbs).
 
+![image](https://github.com/naimenz/logviz/assets/7796965/dfc8ec60-e27a-4389-9b39-9c849e2f430e)
 
 # Running the webapp
 - The webapp can be run from the command line by simply running `logviz`
